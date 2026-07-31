@@ -49,7 +49,10 @@
 
       <!-- Board cells are built by JavaScript (100 squares) -->
       <div class="snl-board-wrap">
-        <div class="snl-board" id="board" role="grid" aria-label="Snakes and ladders board"></div>
+        <div class="snl-board-container">
+          <div class="snl-board" id="board" role="grid" aria-label="Snakes and ladders board"></div>
+          <svg class="snl-board-svg" id="board-svg" aria-hidden="true"></svg>
+        </div>
       </div>
 
       <div class="snl-legend">
