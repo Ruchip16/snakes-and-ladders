@@ -42,6 +42,7 @@ let cellMap = {}; // square number → cell element
 
 // --- DOM elements ---
 const boardEl = document.getElementById("board");
+const svgEl = document.getElementById("board-svg");
 const statusEl = document.getElementById("snl-status");
 const diceEl = document.getElementById("dice");
 const rollBtn = document.getElementById("roll-btn");
@@ -76,20 +77,36 @@ function buildBoard() {
       cell.setAttribute("role", "gridcell");
       cell.setAttribute("aria-label", `Square ${num}`);
 
+      const numSpan = document.createElement("span");
+      numSpan.className = "snl-cell-num";
+      numSpan.textContent = num;
+      cell.appendChild(numSpan);
+
       if (num === START_SQUARE) {
         cell.classList.add("snl-cell--start");
       }
       if (num === WIN_SQUARE) {
         cell.classList.add("snl-cell--finish");
       }
+
       if (LADDERS[num]) {
         cell.classList.add("snl-cell--ladder");
-        cell.innerHTML = `<span class="snl-cell-icon">🪜</span><span class="snl-cell-num">${num}</span>`;
+        cell.title = `Ladder: Climbs up from square ${num} to ${LADDERS[num]}`;
       } else if (SNAKES[num]) {
         cell.classList.add("snl-cell--snake");
-        cell.innerHTML = `<span class="snl-cell-icon">🐍</span><span class="snl-cell-num">${num}</span>`;
-      } else {
-        cell.textContent = num;
+        cell.title = `Snake: Slides down from square ${num} to ${SNAKES[num]}`;
+      }
+
+      if (LADDERS[num] || SNAKES[num]) {
+        const svgGroupId = LADDERS[num] ? `svg-ladder-${num}` : `svg-snake-${num}`;
+        cell.addEventListener("mouseenter", () => {
+          const group = document.getElementById(svgGroupId);
+          if (group) group.classList.add("snl-svg-group--active");
+        });
+        cell.addEventListener("mouseleave", () => {
+          const group = document.getElementById(svgGroupId);
+          if (group) group.classList.remove("snl-svg-group--active");
+        });
       }
 
       const tokens = document.createElement("div");
@@ -101,6 +118,189 @@ function buildBoard() {
       cellMap[num] = cell;
     }
   }
+
+  // Render SVG ladders and snakes after layout computation
+  requestAnimationFrame(drawConnections);
+}
+
+function drawConnections() {
+  if (!svgEl || !boardEl) return;
+
+  svgEl.innerHTML = "";
+
+  const boardRect = boardEl.getBoundingClientRect();
+  if (boardRect.width === 0 || boardRect.height === 0) return;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+
+  // Helper to get square center (x, y) relative to board container
+  const getCenter = (squareNum) => {
+    const cell = cellMap[squareNum];
+    if (!cell) return null;
+    const r = cell.getBoundingClientRect();
+    return {
+      x: r.left + r.width / 2 - boardRect.left,
+      y: r.top + r.height / 2 - boardRect.top,
+    };
+  };
+
+  // Draw 2D Wooden Ladder with Parallel Rails & Rungs
+  const drawLadder = (fromSquare, toSquare) => {
+    const p1 = getCenter(fromSquare);
+    const p2 = getCenter(toSquare);
+    if (!p1 || !p2) return;
+
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    if (len === 0) return;
+
+    const nx = -dy / len; // Normal vector
+    const ny = dx / len;
+    const halfWidth = 7; // Gap between rails
+
+    const r1x1 = p1.x + nx * halfWidth, r1y1 = p1.y + ny * halfWidth;
+    const r1x2 = p2.x + nx * halfWidth, r1y2 = p2.y + ny * halfWidth;
+    const r2x1 = p1.x - nx * halfWidth, r2y1 = p1.y - ny * halfWidth;
+    const r2x2 = p2.x - nx * halfWidth, r2y2 = p2.y - ny * halfWidth;
+
+    const group = document.createElementNS(svgNS, "g");
+    group.setAttribute("id", `svg-ladder-${fromSquare}`);
+    group.setAttribute("class", "snl-svg-group");
+
+    // Left & Right Rails
+    const rail1 = document.createElementNS(svgNS, "line");
+    rail1.setAttribute("x1", r1x1); rail1.setAttribute("y1", r1y1);
+    rail1.setAttribute("x2", r1x2); rail1.setAttribute("y2", r1y2);
+    rail1.setAttribute("class", "snl-ladder-rail");
+
+    const rail2 = document.createElementNS(svgNS, "line");
+    rail2.setAttribute("x1", r2x1); rail2.setAttribute("y1", r2y1);
+    rail2.setAttribute("x2", r2x2); rail2.setAttribute("y2", r2y2);
+    rail2.setAttribute("class", "snl-ladder-rail");
+
+    group.appendChild(rail1);
+    group.appendChild(rail2);
+
+    // Render evenly spaced rungs along the ladder
+    const rungCount = Math.max(3, Math.floor(len / 16));
+    for (let i = 1; i < rungCount; i++) {
+      const t = i / rungCount;
+      const rx1 = r1x1 + (r1x2 - r1x1) * t;
+      const ry1 = r1y1 + (r1y2 - r1y1) * t;
+      const rx2 = r2x1 + (r2x2 - r2x1) * t;
+      const ry2 = r2y1 + (r2y2 - r2y1) * t;
+
+      const rung = document.createElementNS(svgNS, "line");
+      rung.setAttribute("x1", rx1); rung.setAttribute("y1", ry1);
+      rung.setAttribute("x2", rx2); rung.setAttribute("y2", ry2);
+      rung.setAttribute("class", "snl-ladder-rung");
+      group.appendChild(rung);
+    }
+
+    svgEl.appendChild(group);
+  };
+
+  // Draw 2D Wavy Snake with Head, Eyes & Pattern Body
+  const drawSnake = (headSquare, tailSquare) => {
+    const head = getCenter(headSquare);
+    const tail = getCenter(tailSquare);
+    if (!head || !tail) return;
+
+    const dx = tail.x - head.x;
+    const dy = tail.y - head.y;
+    const len = Math.hypot(dx, dy);
+    if (len === 0) return;
+
+    const nx = -dy / len;
+    const ny = dx / len;
+
+    // Create a smooth S-curve body using cubic bezier
+    const cp1x = head.x + (dx * 0.3) + nx * (len * 0.18);
+    const cp1y = head.y + (dy * 0.3) + ny * (len * 0.18);
+    const cp2x = head.x + (dx * 0.7) - nx * (len * 0.18);
+    const cp2y = head.y + (dy * 0.7) - ny * (len * 0.18);
+
+    const pathD = `M ${head.x} ${head.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${tail.x} ${tail.y}`;
+
+    const group = document.createElementNS(svgNS, "g");
+    group.setAttribute("id", `svg-snake-${headSquare}`);
+    group.setAttribute("class", "snl-svg-group");
+
+    // Dark underbody border
+    const bodyUnder = document.createElementNS(svgNS, "path");
+    bodyUnder.setAttribute("d", pathD);
+    bodyUnder.setAttribute("class", "snl-snake-body-under");
+    bodyUnder.setAttribute("stroke-width", "8");
+
+    // Main red body
+    const body = document.createElementNS(svgNS, "path");
+    body.setAttribute("d", pathD);
+    body.setAttribute("class", "snl-snake-body");
+    body.setAttribute("stroke-width", "5");
+
+    // Yellow spot pattern
+    const pattern = document.createElementNS(svgNS, "path");
+    pattern.setAttribute("d", pathD);
+    pattern.setAttribute("class", "snl-snake-pattern");
+    pattern.setAttribute("stroke-width", "2");
+
+    group.appendChild(bodyUnder);
+    group.appendChild(body);
+    group.appendChild(pattern);
+
+    // Snake Head at top square
+    const headCircle = document.createElementNS(svgNS, "circle");
+    headCircle.setAttribute("cx", head.x);
+    headCircle.setAttribute("cy", head.y);
+    headCircle.setAttribute("r", "7.5");
+    headCircle.setAttribute("class", "snl-snake-head");
+    group.appendChild(headCircle);
+
+    // Eyes
+    const eye1 = document.createElementNS(svgNS, "circle");
+    eye1.setAttribute("cx", head.x - 2.5);
+    eye1.setAttribute("cy", head.y - 2);
+    eye1.setAttribute("r", "2");
+    eye1.setAttribute("class", "snl-snake-eye");
+
+    const pupil1 = document.createElementNS(svgNS, "circle");
+    pupil1.setAttribute("cx", head.x - 2.5);
+    pupil1.setAttribute("cy", head.y - 2);
+    pupil1.setAttribute("r", "1");
+    pupil1.setAttribute("class", "snl-snake-pupil");
+
+    const eye2 = document.createElementNS(svgNS, "circle");
+    eye2.setAttribute("cx", head.x + 2.5);
+    eye2.setAttribute("cy", head.y - 2);
+    eye2.setAttribute("r", "2");
+    eye2.setAttribute("class", "snl-snake-eye");
+
+    const pupil2 = document.createElementNS(svgNS, "circle");
+    pupil2.setAttribute("cx", head.x + 2.5);
+    pupil2.setAttribute("cy", head.y - 2);
+    pupil2.setAttribute("r", "1");
+    pupil2.setAttribute("class", "snl-snake-pupil");
+
+    // Forked Tongue
+    const tongue = document.createElementNS(svgNS, "line");
+    tongue.setAttribute("x1", head.x);
+    tongue.setAttribute("y1", head.y - 7.5);
+    tongue.setAttribute("x2", head.x);
+    tongue.setAttribute("y2", head.y - 12);
+    tongue.setAttribute("class", "snl-snake-tongue");
+
+    group.appendChild(eye1);
+    group.appendChild(pupil1);
+    group.appendChild(eye2);
+    group.appendChild(pupil2);
+    group.appendChild(tongue);
+
+    svgEl.appendChild(group);
+  };
+
+  Object.keys(LADDERS).forEach((start) => drawLadder(Number(start), LADDERS[start]));
+  Object.keys(SNAKES).forEach((start) => drawSnake(Number(start), SNAKES[start]));
 }
 
 function updatePlayerPanels() {
@@ -253,3 +453,4 @@ updatePlayerPanels();
 rollBtn.addEventListener("click", handleRoll);
 document.getElementById("new-game").addEventListener("click", newGame);
 document.getElementById("reset-wins").addEventListener("click", resetWins);
+window.addEventListener("resize", drawConnections);

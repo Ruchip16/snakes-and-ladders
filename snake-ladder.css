@@ -144,16 +144,94 @@
   margin-bottom: 1rem;
 }
 
+.snl-board-container {
+  position: relative;
+  min-width: 280px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
 .snl-board {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 2px;
-  min-width: 280px;
-  max-width: 520px;
-  margin: 0 auto;
   padding: 4px;
   background: var(--border);
   border-radius: var(--radius);
+}
+
+.snl-board-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
+}
+
+/* SVG Traditional Element Styles */
+.snl-svg-group {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0.88;
+}
+
+.snl-svg-group:hover,
+.snl-svg-group--active {
+  opacity: 1 !important;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.snl-ladder-rail {
+  stroke: #b45309;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.snl-ladder-rung {
+  stroke: #d97706;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.snl-snake-body-under {
+  fill: none;
+  stroke: #991b1b;
+  stroke-linecap: round;
+}
+
+.snl-snake-body {
+  fill: none;
+  stroke: #ef4444;
+  stroke-linecap: round;
+}
+
+.snl-snake-pattern {
+  fill: none;
+  stroke: #fde047;
+  stroke-dasharray: 4 6;
+  stroke-linecap: round;
+}
+
+.snl-snake-head {
+  fill: #dc2626;
+  stroke: #991b1b;
+  stroke-width: 1.5;
+}
+
+.snl-snake-eye {
+  fill: #ffffff;
+}
+
+.snl-snake-pupil {
+  fill: #000000;
+}
+
+.snl-snake-tongue {
+  stroke: #dc2626;
+  stroke-width: 1.5;
+  stroke-linecap: round;
 }
 
 .snl-cell {
@@ -163,11 +241,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.45rem, 2vw, 0.65rem);
-  font-weight: 600;
+  font-size: clamp(0.55rem, 2.2vw, 0.75rem);
+  font-weight: 700;
   background: var(--surface-muted);
   border-radius: 4px;
   color: var(--text-muted);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+  user-select: none;
 }
 
 .snl-cell:nth-child(odd) {
@@ -177,23 +258,68 @@
 /* Start and finish squares */
 .snl-cell--start {
   background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .snl-cell--finish {
   background: var(--sage-soft);
-  font-weight: 700;
+  font-weight: 800;
   color: var(--sage);
 }
 
 /* Ladder bottom (climb up) and snake head (slide down) */
 .snl-cell--ladder {
-  background: #ecfdf5;
-  color: #047857;
+  background: #f0fdf4;
+  color: #15803d;
+  cursor: pointer;
 }
 
 .snl-cell--snake {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: #fff1f2;
+  color: #be123c;
+  cursor: pointer;
+}
+
+.snl-cell-badge {
+  font-size: clamp(0.4rem, 1.5vw, 0.55rem);
+  font-weight: 700;
+  padding: 1px 3px;
+  border-radius: 4px;
+  margin-top: 1px;
+  line-height: 1;
+}
+
+.snl-cell-badge--ladder {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.snl-cell-badge--snake {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Cell hover glow effects */
+.snl-cell--hover-source {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 0 0 3px #10b981, 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.snl-cell--snake.snl-cell--hover-source {
+  box-shadow: 0 0 0 3px #ef4444, 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.snl-cell--hover-target {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 0 0 3px #f59e0b, 0 4px 12px rgba(245, 158, 11, 0.4);
+  animation: snl-target-pulse 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes snl-target-pulse {
+  0% { transform: scale(1.08); }
+  100% { transform: scale(1.15); }
 }
 
 .snl-cell-icon {
@@ -202,13 +328,28 @@
 }
 
 .snl-cell-num {
-  line-height: 1.1;
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  z-index: 15;
+  font-size: clamp(0.5rem, 1.8vw, 0.7rem);
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  padding: 0px 3px;
+  border-radius: 3px;
+  line-height: 1.15;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
 }
 
 /* Player tokens sitting on a cell */
 .snl-tokens {
   position: absolute;
-  bottom: 2px;
+  bottom: 3px;
+  right: 3px;
+  z-index: 20;
   display: flex;
   gap: 2px;
 }
