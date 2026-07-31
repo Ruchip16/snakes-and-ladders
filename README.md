@@ -1,2 +1,2 @@
-# tic-tac-toe-updated
-simple interactive tic-tac-toe game 
+# snake and ladders game updates
+simple interactive snake and ladder game
