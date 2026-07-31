@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snakes &amp; Ladders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="snake-ladder.css" />
+</head>
+<body>
+  <div class="container snl-container">
+    <header class="snl-header">
+      <p class="hero-eyebrow">Fun Game to play :D</p>
+      <h1>Snakes &amp; Ladders</h1>
+      <p class="hero-lead">Roll the dice, climb ladders, dodge snakes. First player to reach square 100 wins!</p>
+    </header>
+
+    <section class="card snl-game" aria-labelledby="snl-status">
+      <!-- Player info + wins -->
+      <div class="snl-players">
+        <div class="snl-player snl-player--1 snl-player--active" id="player-1-panel">
+          <span class="snl-player-token" aria-hidden="true"></span>
+          <div>
+            <span class="snl-player-name">Player 1</span>
+            <span class="snl-player-pos">Square <strong id="pos-1">1</strong></span>
+          </div>
+          <span class="snl-player-wins">Wins: <strong id="wins-1">0</strong></span>
+        </div>
+        <div class="snl-player snl-player--2" id="player-2-panel">
+          <span class="snl-player-token" aria-hidden="true"></span>
+          <div>
+            <span class="snl-player-name">Player 2</span>
+            <span class="snl-player-pos">Square <strong id="pos-2">1</strong></span>
+          </div>
+          <span class="snl-player-wins">Wins: <strong id="wins-2">0</strong></span>
+        </div>
+      </div>
+
+      <p class="snl-status" id="snl-status" aria-live="polite">Player 1's turn — roll the dice!</p>
+
+      <!-- Dice + roll button -->
+      <div class="snl-dice-area">
+        <div class="snl-dice" id="dice" aria-label="Dice showing 1">1</div>
+        <button type="button" class="button" id="roll-btn">Roll Dice</button>
+      </div>
+
+      <!-- Board cells are built by JavaScript (100 squares) -->
+      <div class="snl-board-wrap">
+        <div class="snl-board" id="board" role="grid" aria-label="Snakes and ladders board"></div>
+      </div>
+
+      <div class="snl-legend">
+        <span class="snl-legend-item snl-legend-item--ladder">🪜 Ladder</span>
+        <span class="snl-legend-item snl-legend-item--snake">🐍 Snake</span>
+      </div>
+
+      <div class="snl-actions">
+        <button type="button" class="snl-btn-secondary" id="new-game">New Game</button>
+        <button type="button" class="snl-btn-secondary" id="reset-wins">Reset Wins</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="snake-ladder.js"></script>
+</body>
+</html>

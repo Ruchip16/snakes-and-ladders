@@ -1,0 +1,274 @@
+/* Snakes & Ladders — game-specific styles */
+
+.snl-container {
+  max-width: 640px;
+}
+
+.snl-header {
+  text-align: center;
+  padding: 1.5rem 1rem 0.5rem;
+}
+
+.snl-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.snl-game {
+  text-align: center;
+}
+
+/* Player panels */
+.snl-players {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.snl-player {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: var(--surface-muted);
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.snl-player--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.snl-player-token {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.snl-player--1 .snl-player-token {
+  background: var(--accent);
+}
+
+.snl-player--2 .snl-player-token {
+  background: var(--sage);
+}
+
+.snl-player-name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.snl-player-pos {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.snl-player-wins {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.snl-status {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  min-height: 1.5em;
+}
+
+/* Dice */
+.snl-dice-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.snl-dice {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);
+  transition: transform 0.15s ease;
+}
+
+.snl-dice--rolling {
+  animation: snl-shake 0.4s ease;
+}
+
+@keyframes snl-shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-8deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(8deg) scale(1.05);
+  }
+}
+
+.snl-dice-area .button {
+  margin-top: 0;
+}
+
+.snl-dice-area .button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 10×10 board */
+.snl-board-wrap {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.snl-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  min-width: 280px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 4px;
+  background: var(--border);
+  border-radius: var(--radius);
+}
+
+.snl-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.45rem, 2vw, 0.65rem);
+  font-weight: 600;
+  background: var(--surface-muted);
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.snl-cell:nth-child(odd) {
+  background: var(--surface);
+}
+
+/* Start and finish squares */
+.snl-cell--start {
+  background: var(--accent-soft);
+}
+
+.snl-cell--finish {
+  background: var(--sage-soft);
+  font-weight: 700;
+  color: var(--sage);
+}
+
+/* Ladder bottom (climb up) and snake head (slide down) */
+.snl-cell--ladder {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.snl-cell--snake {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.snl-cell-icon {
+  font-size: clamp(0.55rem, 2.2vw, 0.75rem);
+  line-height: 1;
+}
+
+.snl-cell-num {
+  line-height: 1.1;
+}
+
+/* Player tokens sitting on a cell */
+.snl-tokens {
+  position: absolute;
+  bottom: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.snl-token {
+  width: clamp(6px, 1.8vw, 10px);
+  height: clamp(6px, 1.8vw, 10px);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.snl-token--1 {
+  background: var(--accent);
+}
+
+.snl-token--2 {
+  background: var(--sage);
+}
+
+.snl-token--moving {
+  animation: snl-bounce 0.2s ease;
+}
+
+@keyframes snl-bounce {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.snl-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.snl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.snl-btn-secondary {
+  padding: 0.85rem 1.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.snl-btn-secondary:hover {
+  background: var(--border);
+  color: var(--text);
+}
